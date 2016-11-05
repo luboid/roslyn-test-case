@@ -71,23 +71,23 @@ namespace CSRunner
             // test scenarios
             // Here satellite assembly is loaded because all written to then files and assembly
             // receives its Location, and message is showing in English
-            OkScenario(env);
+            // OkScenario(env);
 
             // Case with problems, assemblies are only in memory and can't paired
             // Here message is not shown in English
-            // FailScenario(env);
+            FailScenario(env);//Working with AppDomain.AssemblyResolve 
 
             return 0;
         }
 
         //private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         //{
-        //    var assmebly = new AssemblyName(args.Name);
-        //    if (assmebly.Name.Contains(".resources"))
-        //    {
-        //        var path = Path.Combine(Config.TasksLocation, "en\\" + assmebly.Name);
-        //        return Assembly.LoadFrom(path);
-        //    }
+        //    //var assmebly = new AssemblyName(args.Name);
+        //    //if (assmebly.Name.Contains(".resources"))
+        //    //{
+        //    //    var path = Path.Combine(Config.TasksLocation, "en\\" + assmebly.Name);
+        //    //    return Assembly.LoadFrom(path);
+        //    //}
         //    System.Console.WriteLine(args.Name);
         //    return null;
         //}

@@ -31,8 +31,56 @@ namespace CSRunner.Base
 
         static CSharpCompilerInMemory()
         {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_ResourceResolve;
+            // AppDomain.CurrentDomain.ResourceResolve += CurrentDomain_ResourceResolve;
             _runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
             _parserOptions = new CSharpParseOptions();//.WithLanguageVersion(LanguageVersion.CSharp6)
+        }
+
+        private static Assembly CurrentDomain_ResourceResolve(object sender, ResolveEventArgs args)
+        {
+            var assemblyName = new AssemblyName(args.Name);
+            if (assemblyName.Name.EndsWith(".resources", StringComparison.InvariantCultureIgnoreCase))
+            {
+                var assemblyNameVersion = assemblyName.Version;
+                var assemblyNameName = assemblyName.Name;
+                var cultureName = assemblyName.CultureName;
+                var cultureNameFirstPart = assemblyName.CultureName.Split('-')[0];
+                var assembly = AppDomain.CurrentDomain.GetAssemblies().Where(a =>
+                {
+                    var domainAssemblyName = a.GetName();
+                    var domainAssemblyNameVersion = domainAssemblyName.Version;
+                    return domainAssemblyName.Name == assemblyNameName &&
+                        domainAssemblyNameVersion.Build == assemblyNameVersion.Build &&
+                        domainAssemblyNameVersion.Major == assemblyNameVersion.Major &&
+                        domainAssemblyNameVersion.MajorRevision == assemblyNameVersion.MajorRevision &&
+                        domainAssemblyNameVersion.Minor == assemblyNameVersion.Minor &&
+                        domainAssemblyNameVersion.MinorRevision == assemblyNameVersion.MinorRevision &&
+                        domainAssemblyNameVersion.Revision == assemblyNameVersion.Revision &&
+                        (domainAssemblyName.CultureName.StartsWith(cultureNameFirstPart, StringComparison.InvariantCultureIgnoreCase) ||
+                         domainAssemblyName.CultureName.StartsWith(cultureName, StringComparison.InvariantCultureIgnoreCase));
+                })
+                .OrderBy(a => {//simple culture mathcing
+                    var domainAssemblyName = a.GetName();
+                    var result = string.Compare(domainAssemblyName.CultureName, cultureName, StringComparison.InvariantCultureIgnoreCase);
+                    if (result != 0)
+                    {
+                        if (0 == string.Compare(domainAssemblyName.CultureName, cultureNameFirstPart, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            result = 1;
+                        }
+                        else
+                        {
+                            result = 2;
+                        }
+                    }
+                    return result;
+                })
+                .SingleOrDefault();
+
+                return assembly;
+            }
+            return null;
         }
 
         static IResXCompiler ResXCompiler
